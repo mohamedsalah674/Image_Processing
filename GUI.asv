@@ -1,0 +1,417 @@
+
+function varargout = GUI(varargin)
+% GUI MATLAB code for GUI.fig
+%      GUI, by itself, creates a new GUI or raises the existing
+%      singleton*.
+%
+%      H = GUI returns the handle to a new GUI or the handle to
+%      the existing singleton*.
+%
+%      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in GUI.M with the given input arguments.
+%
+%      GUI('Property','Value',...) creates a new GUI or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before GUI_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to GUI_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help GUI
+
+% Last Modified by GUIDE v2.5 19-Dec-2022 02:38:46
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @GUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @GUI_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before GUI is made visible.
+function GUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to GUI (see VARARGIN)
+
+% Choose default command line output for GUI
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes GUI wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = GUI_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+% --- Executes on button press in ByeBye.
+function ByeBye_Callback(hObject, eventdata, handles)
+% hObject    handle to ByeBye (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+msgbox('Thanks for using me :)');
+closereq();
+
+% --- Executes on slider movement.
+function slider_Brightness_Callback(hObject, eventdata, handles)
+% hObject    handle to slider_Brightness (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+pic = get(hObject,'Value');
+img = handles.img;
+m = img+pic;
+handles.img=m;
+guidata(hObject,handles);
+axes(handles.axes2);
+imshow(m);
+
+% --- Executes during object creation, after setting all properties.
+function slider_Brightness_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider_Brightness (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on button press in V_Edges.
+function V_Edges_Callback(hObject, eventdata, handles)
+% hObject    handle to V_Edges (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Hint: get(hObject,'Value') returns toggle state of V_Edges
+a = getappdata(0,'filename');
+hmask=fspecial('sobel');
+vmask=hmask';
+b_h=imfilter(a,hmask,'replicate');
+b_v=imfilter(a,vmask,'replicate');
+grad=b_h+b_v;
+axes(handles.axes2);
+imshow(b_v),title('vertical edges');
+imshow(grad)
+setappdata(0,'filename',a)
+
+% --- Executes on button press in H_Edges.
+function H_Edges_Callback(hObject, eventdata, handles)
+% hObject    handle to H_Edges (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Hint: get(hObject,'Value') returns toggle state of H_Edges
+a = getappdata(0,'filename');
+hmask=fspecial('sobel');
+b_h=imfilter(a,hmask,'replicate');
+axes(handles.axes2);
+imshow(b_h),title('horizontal edges');
+setappdata(0,'filename',a)
+
+% --- Executes on selection change in popupmenu_sharpening.
+function popupmenu_sharpening_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu_sharpening (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu_sharpening contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu_sharpening
+index = get(handles.popupmenu_sharpening ,'value');
+switch(index)
+    case 2
+        a = getappdata(0,'filename');
+        w=fspecial('laplacian',0);
+        d1=imfilter(a,w,'replicate');
+        b=a-d1;
+        axes(handles.axes2);
+        imshow(b)
+        setappdata(0,'filename',a)
+
+    case 3
+        a = getappdata(0,'filename');
+        w2=[1 1 1;1 -8 1; 1 1 1];
+        d2=imfilter(a,w2,'replicate');
+        c=a-d2;
+        axes(handles.axes2);
+        imshow(c)
+        setappdata(0,'filename',a)
+
+    end
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu_sharpening_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu_sharpening (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in Reset.
+function Reset_Callback(hObject, eventdata, handles)
+% hObject    handle to Reset (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a=getappdata(0,'reset');
+axes(handles.axes2);
+imshow(a);
+setappdata(0,'filename',a)
+
+
+% --- Executes on button press in upload_image.
+function upload_image_Callback(hObject, eventdata, handles)
+% hObject    handle to upload_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[nama, tempat] = uigetfile('*.jpeg;*.jpg;*.png');
+img = fullfile(tempat, nama); %brightness
+a=imread(img);
+handles.img=a;              %brightness
+guidata(hObject,handles);   %brightness
+handles.reset=a;            %brightness
+guidata(hObject,handles);   %brightness
+axes(handles.axes1);
+imshow(a);
+setappdata(0,'a',a)
+setappdata(0,'filename',a)
+setappdata(0,'reset',a)
+
+% --- Executes on button press in RGB_2_Gray.
+function RGB_2_Gray_Callback(hObject, eventdata, handles)
+% hObject    handle to RGB_2_Gray (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a=getappdata(0,'filename');
+agray=rgb2gray(a);
+axes(handles.axes2);
+imshow(agray);
+setappdata(0,'filename',agray)
+
+% --- Executes on button press in Histogram_Equalization.
+function Histogram_Equalization_Callback(hObject, eventdata, handles)
+% hObject    handle to Histogram_Equalization (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a=getappdata(0,'filename');
+ahist=a;
+axes(handles.axes2);
+imhist(ahist);
+
+% --- Executes on button press in Contrast_Stretching.
+function Contrast_Stretching_Callback(hObject, eventdata, handles)
+% hObject    handle to Contrast_Stretching (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a=getappdata(0,'a');
+stretched_Image = imadjust(a, stretchlim(a, [0.05, 0.95]),[]);
+axes(handles.axes2);
+imshow(stretched_Image);
+setappdata(0,'filename',stretched_Image)
+
+% --- Executes on button press in Save_AS.
+function Save_AS_Callback(hObject, eventdata, handles)
+startingFolder = userpath % Or "pwd" or wherever you want.
+defaultFileName = fullfile(startingFolder, '*.*');
+[baseFileName, folder] = uiputfile(defaultFileName, 'filename');
+if baseFileName == 0
+    % User clicked the Cancel button.
+    return;
+end
+fullFileName = fullfile(folder, baseFileName)
+% hObject    handle to Save_AS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in Binary_Image.
+function Binary_Image_Callback(hObject, eventdata, handles)
+% hObject    handle to Binary_Image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+a=getappdata(0,'filename');
+abw=im2bw(a);
+axes(handles.axes2);
+imshow(abw);
+setappdata(0,'filename',abw)
+
+% --- Executes on button press in Arithmatic_mean.
+function Arithmatic_mean_Callback(hObject, eventdata, handles)
+
+% hObject    handle to Arithmatic_mean (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Arithmatic_mean
+A = getappdata(0,'filename');
+A1 = im2double(A);
+h = ones(9,9);
+B = imfilter(A1,h/81);
+axes(handles.axes2);
+imshow(B);
+setappdata(0,'filename',B)
+
+
+% --- Executes on button press in Harmonic_mean.
+function Harmonic_mean_Callback(hObject, eventdata, handles)
+% hObject    handle to Harmonic_mean (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Harmonic mean filter
+A = getappdata(0,'filename');
+A1 = im2double(A);
+h = ones(9,9);
+B = 9 * 9 ./ imfilter(1./(A1 + eps),h,'replicate');
+axes(handles.axes2);
+imshow(B);
+setappdata(0,'filename',B)
+
+% --- Executes on button press in Min.
+function Min_Callback(hObject, eventdata, handles)
+% hObject    handle to Min (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+Original=getappdata(0,'filename');         %Read in image
+
+minf=@(x) min(x(:));                %set 'min()' filter
+min_Image=nlfilter(Original,[3 3],minf);  %Apply over 3 x 3 neighbourhood
+axes(handles.axes2);
+
+imshow(min_Image), title('Min'); %Display min image
+
+
+% --- Executes on button press in Max.
+function Max_Callback(hObject, eventdata, handles)
+Original=getappdata(0,'filename');         %Read in image
+
+maxf=@(x)max(x(:));                 %set 'max()' filter
+max_Image=nlfilter(Original,[3 3],maxf);  %Apply over 3 x 3 neighbourhood
+axes(handles.axes2);
+
+imshow(max_Image), title('Max'); %Display max image
+
+% --- Executes on button press in Median.
+function Median_Callback(hObject, eventdata, handles)
+        a=getappdata(0,'filename');
+        if (size(a,3)== 3) 
+            a=rgb2gray(a);
+        end
+        noise=imnoise(a,'salt & pepper');
+        mF= @(x) median(x(:));              % apply median to solve Noisy image (success to enhanement it )
+        d = nlfilter(noise,[3 3],mF);
+        axes(handles.axes2);
+        imshow(d);
+
+% --- Executes on button press in Contraharmonic_mean.
+function Contraharmonic_mean_Callback(hObject, eventdata, handles)
+A = getappdata(0,'filename');
+A1 = im2double(A);
+h = ones(9,9);
+B = imfilter(A1.^(1+1),h,'replicate');
+B = B ./(imfilter(A1.^1,h,'replicate') + eps);
+axes(handles.axes2);
+imshow(B);
+
+% --- Executes on button press in Midpoint.
+function Midpoint_Callback(hObject, eventdata, handles)
+    pic = getappdata(0,'filename');
+    if (size(pic,3)== 3)
+        pic=rgb2gray(pic);
+    end
+    midp =@(x) (min(x(:)) + min(x(:)))/2;
+    m=nlfilter(pic,[3,3],midp);
+    axes(handles.axes2);
+    imshow(m)
+
+% --- Executes on button press in Salt_Pepper_noise.
+function Salt_Pepper_noise_Callback(hObject, eventdata, handles)
+        a = getappdata(0,'filename');
+        noise=imnoise(a,'salt & pepper');   % apply salt&pepper function to make original image Noisy.
+        axes(handles.axes2);
+        imshow(noise)
+        setappdata(0,'filename',noise)
+
+
+% --- Executes on button press in Salt_Noise_noise.
+function Salt_Noise_noise_Callback(hObject, eventdata, handles)
+originalImage = getappdata(0,'filename');
+[rows cols] = size(originalImage);
+totalPixels = int32(rows * cols);
+numberOfNoisePixels = int32(0.001 * double(rows) * double(cols));
+locations = randi(totalPixels, [numberOfNoisePixels, 1]);
+noisyImage = originalImage;
+noisyImage(locations) = 255;
+axes(handles.axes2);
+imshow(noisyImage, []);
+setappdata(0,'filename',noisyImage)
+
+
+% hObject    handle to Salt_Noise_noise (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Salt_Noise_noise
+
+
+% --- Executes on button press in Gaussian_Noise_noise.
+function Gaussian_Noise_noise_Callback(hObject, eventdata, handles)
+        a=getappdata(0,'filename');
+        noise=imnoise(a,'gaussian');
+        axes(handles.axes2);
+        imshow(noise);
+        setappdata(0,'filename',noise)
+% hObject    handle to Gaussian_Noise_noise (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Gaussian_Noise_noise
+
+
+% --- Executes on button press in Pepper_Noise.
+function Pepper_Noise_Callback(hObject, eventdata, handles)
+     a = getappdata(0,'filename');
+     if (size(a,3)== 3)
+               a=rgb2gray(a);
+     end
+         noise=imnoise(a,'salt & pepper');  % apply min to solve Noisy image (faile to enhanement it )
+         fun =@(x) min(x(:));
+         m=nlfilter(noise,[3,3],fun);
+         axes(handles.axes2);
+         imshow(m)
+         setappdata(0,'filename',m)
+
+% hObject    handle to Pepper_Noise (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Pepper_Noise
